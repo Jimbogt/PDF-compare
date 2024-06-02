@@ -37,14 +37,18 @@ def browse_input_3():
 def pdf2img():
     try:
         
+        
+        ############################################################
         # Debugging
         input_dir_1.set("C:/Users/james/Documents/Personal/Projects/Python/PDF-compare/test/Current Set")
         input_dir_2.set("C:/Users/james/Documents/Personal/Projects/Python/PDF-compare/test/Markups")
         output_dir.set("C:/Users/james/Documents/Personal/Projects/Python/PDF-compare/test")
+        ############################################################
+        
         
         # Ensure all directories are specified first by user
-        if len(input_dir_1.get()) == 0 or input_dir_2 == "" or output_dir == "":
-            Result = "Please select input/output folder locations."
+        if len(input_dir_1.get()) == 0 or len(input_dir_2.get()) == 0 or len(output_dir.get()) == 0:
+            Result = "One or more folders haven't been selected. Please select input and output folder locations first."
             messagebox.showinfo("Error", Result)
             return
         # Ensure input directories are different
@@ -53,25 +57,56 @@ def pdf2img():
             messagebox.showinfo("Error", Result)
             return
         
+        
+        ############################################################
         # Debugging
-        print(os.listdir(input_dir_1.get()))
-        print(os.listdir(input_dir_2.get()))
+        #print(os.listdir(input_dir_1.get()))
+        #print(os.listdir(input_dir_2.get()))
+        ############################################################
         
-        input_files_1 = list()
-        input_files_2 = list()
-        
+
         # Compile list of file directories in first input folder
+        input_files_1 = list()
+        # Iterate through all files in input_dir_1
         for file in os.listdir(input_dir_1.get()):
+            # Omits folders in input_dir_1
             if os.path.isfile(os.path.join(input_dir_1.get(), file)):
-                input_files_1.append(os.path.join(input_dir_1.get(), file).replace("\\","/"))
+                dir_len = len(os.path.join(input_dir_1.get(), file).replace("\\","/"))
+                # Only adds PDFs to input_files_1
+                if os.path.join(input_dir_1.get(), file).replace("\\","/")[dir_len - 4:] == ".pdf":
+                    input_files_1.append(os.path.join(input_dir_1.get(), file).replace("\\","/"))
                 
         # Compile list of file directories in second input folder
+        input_files_2 = list()
+        # Iterate through all files in input_dir_2
         for file in os.listdir(input_dir_2.get()):
+            # Omits folders in input_dir_2
             if os.path.isfile(os.path.join(input_dir_2.get(), file)):
-                input_files_2.append(os.path.join(input_dir_2.get(), file).replace("\\","/"))
-         
-        # debugging        
+                dir_len = len(os.path.join(input_dir_2.get(), file).replace("\\","/"))
+                # Only adds PDFs to input_files_2                
+                if os.path.join(input_dir_2.get(), file).replace("\\","/")[dir_len - 4:] == ".pdf":
+                    input_files_2.append(os.path.join(input_dir_2.get(), file).replace("\\","/"))
+        
+        #for file in os.listdir(input_dir_2.get()):
+         #   if os.path.isfile(os.path.join(input_dir_2.get(), file)):
+          #      input_files_2.append(os.path.join(input_dir_2.get(), file).replace("\\","/"))
+        
+        print(input_files_1)
+        print(input_files_2)
+        
+        # Check the number of files in each input folder matches
+        if len(input_files_1) != len(input_files_2):
+            Result = "Number of PDFs in each input folder doesn't match. Please check the contents of each folder."
+            messagebox.showinfo("Error", Result)
+            return
+        
+        ############################################################
+        # debugging
         #print(input_files_2)
+        ############################################################
+        
+        
+        
         
         #images = convert_from_path(str(e1.get()))
         #for img in images:
