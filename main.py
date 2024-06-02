@@ -86,13 +86,14 @@ def pdf2img():
                 # Only adds PDFs to input_files_2                
                 if os.path.join(input_dir_2.get(), file).replace("\\","/")[dir_len - 4:] == ".pdf":
                     input_files_2.append(os.path.join(input_dir_2.get(), file).replace("\\","/"))
-        
-        #for file in os.listdir(input_dir_2.get()):
-         #   if os.path.isfile(os.path.join(input_dir_2.get(), file)):
-          #      input_files_2.append(os.path.join(input_dir_2.get(), file).replace("\\","/"))
-        
+
+
+        ############################################################
+        # Debugging
         print(input_files_1)
         print(input_files_2)
+        ############################################################
+        
         
         # Check the number of files in each input folder matches
         if len(input_files_1) != len(input_files_2):
@@ -100,11 +101,18 @@ def pdf2img():
             messagebox.showinfo("Error", Result)
             return
         
-        ############################################################
-        # debugging
-        #print(input_files_2)
-        ############################################################
-        
+        num_pdf_pairs = len(input_files_1)
+        for pdf_index in range(num_pdf_pairs):
+            print(input_files_1[pdf_index])
+            img_1 = convert_from_path(input_files_1[pdf_index])
+            img_2 = convert_from_path(input_files_2[pdf_index])
+            
+            # Assumes each PDF is only one page long
+            img_diff = ImageChops.difference(img_1[0], img_2[0])
+            
+            output_name = "PDF " + str(pdf_index + 1) + ".jpg"
+
+            img_diff.save(os.path.join(output_dir.get(), output_name).replace("\\","/"), 'JPEG')
         
         
         
