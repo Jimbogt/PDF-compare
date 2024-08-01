@@ -28,6 +28,7 @@ MANIFEST
 
 # Test files
 test/
+test_greenedoff/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
