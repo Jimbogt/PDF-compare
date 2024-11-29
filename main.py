@@ -1,5 +1,4 @@
 from pdf2image import convert_from_path
-poppler_local = "C:/Users/AUJB508470/Documents/Projects/Python/Programs/poppler-24.02.0/Library/bin"
 from tkinter import Tk, filedialog, messagebox, StringVar, Label, Button, mainloop
 from tkinter import *
 
@@ -7,6 +6,15 @@ import sys
 import os, os.path
 from PIL import Image, ImageDraw, ImageChops, ImageOps, ImageFilter
 import numpy as np
+
+# Written & compiled using Python 3.12.3
+# Dependent on the Poppler PDF manipulation library. Install with pip install poppler-utils
+# Alternatively, download latest release from 
+# https://github.com/oschwartz10612/poppler-windows/releases/ 
+# Extract & give the directory to the bin folder (uncomment following line):
+# poppler_local = "C:/dir/to/your/poppler-xx.xx.x/Library/bin"
+# Use additional argument poppler_path when calling convert_from_path, e.g.
+# convert_from_path(path_var, poppler_path=poppler_local)
  
 # Browse for an input folder 1 destination & store directory as input_dir_1
 def browse_input_dir_1():
@@ -131,17 +139,6 @@ def extract_greenoffs(img):
 def compare_pdfs():
 
     # try:    
-    ############################################################
-    # Debugging (Home PC)
-    # input_dir_1.set("C:/Users/james/Documents/Personal/Prsojects/Python/PDF-compare/test/Current Set")
-    # input_dir_2.set("C:/Users/james/Documents/Personal/Projects/Python/PDF-compare/test/Markups")
-    # output_dir.set("C:/Users/james/Documents/Personal/Projects/Python/PDF-compare/test")
-
-    # Debugging (Work PC)
-    # input_dir_1.set("C:/Users/AUJB508470/Documents/Projects/Python/PDF-compare/test_greenedoff/Input Folder 1")
-    # input_dir_2.set("C:/Users/AUJB508470/Documents/Projects/Python/PDF-compare/test_greenedoff/Input Folder 2")
-    # output_dir.set("C:/Users/AUJB508470/Documents/Projects/Python/PDF-compare/test_greenedoff/Output Folder")
-    ############################################################
 
     # Ensure all directories are specified first by user
     if len(input_dir_1.get()) == 0 or len(input_dir_2.get()) == 0 or len(output_dir.get()) == 0:
@@ -190,40 +187,39 @@ def compare_pdfs():
 
     ############################################################
     # Debugging
-    print("Input Folder 1 Contents: ")
-    print(os.listdir(input_dir_1.get()))
-    print("Input Folder 2 Contents: ")
-    print(os.listdir(input_dir_2.get()))
+    # print("Input Folder 1 Contents: ")
+    # print(os.listdir(input_dir_1.get()))
+    # print("Input Folder 2 Contents: ")
+    # print(os.listdir(input_dir_2.get()))
     ############################################################
     
     num_pdf_pairs = len(input_files_1)
-    for pdf_index in range(num_pdf_pairs): #debugging
+    for pdf_index in range(num_pdf_pairs):
 
         # Pseudo progress bar
         b4.config(text="Comparing file {}/{}".format(pdf_index + 1, num_pdf_pairs))
         master.update()
 
-        # Home dev
-        # img_1 = convert_from_path(input_files_1[pdf_index])
-        # img_2 = convert_from_path(input_files_2[pdf_index])
+        # Poppler in PATH 
+        img_1 = convert_from_path(input_files_1[pdf_index])
+        img_2 = convert_from_path(input_files_2[pdf_index])
 
-        # Work dev
-        img_1 = convert_from_path(input_files_1[pdf_index], poppler_path=poppler_local)
-        img_2 = convert_from_path(input_files_2[pdf_index], poppler_path=poppler_local)
+        # Poppler not in PATH
+        # img_1 = convert_from_path(input_files_1[pdf_index], poppler_path=poppler_local)
+        # img_2 = convert_from_path(input_files_2[pdf_index], poppler_path=poppler_local)
         
         # Take absolute magnitude difference, pixel-by-pixel
         img_diff = get_img_abs_diff(img_1[0], img_2[0]) # Indexing img_1 and img_2 assumes each PDF is only one page long
         img_out_1 = img_diff
 
         img_greenoffs = extract_greenoffs(img_diff)
-        # img_greenoffs.show()
         
         # Grayscale image & threshold.
         img_out_1 = ImageOps.grayscale(img_out_1)
         img_out_1 = img_out_1.point(lambda p: 0 if p > 250 else 255)
         img_out_2 = img_out_1 # img_out_1 ends up being yellow halo, img_out_2 being red diffs
 
-        halo_opacity = 100 # 255/100 -> approx 30% opacity
+        halo_opacity = 100 # 255/100 -> approx 25% opacity
         img_out_1 = create_img_halo(img_out_1, halo_opacity)
         
         ############# img_out_2 processing (red text)
@@ -250,16 +246,12 @@ def compare_pdfs():
         # Overlay mask on original 
         img_1[0].paste(img_out_1, (0,0), mask = img_out_1) 
         
-        # Useful funcs
-        # PIL.Image.alpha_composite(im1: Image, im2: Image) → Image[source]
-        # PIL.Image.composite(image1: Image, image2: Image, mask: Image)
-        
-        # Save image as e.g. "PDF 1.jpg"
-        output_name = "PDF " + str(pdf_index + 1) + ".png"
+        # Save overlayed PDFs with diffs highlighted
+        output_name = str(os.listdir(input_dir_1.get())[pdf_index][:-4]) + ".png"
         img_1[0].save(os.path.join(output_dir.get(), output_name).replace("\\","/"), 'PNG')
         
-        # Save image maske as e.g. "PDF 1 Mask.jpg"
-        output_name = "PDF " + str(pdf_index + 1) + " Mask.png"
+        # Save image diff mask
+        output_name = str(os.listdir(input_dir_1.get())[pdf_index][:-4]) + " Mask .png"
         img_out_1.save(os.path.join(output_dir.get(), output_name).replace("\\","/"), 'PNG')
     
     # Change button text back to "Compare PDFs"
@@ -301,8 +293,6 @@ lbl2 = Label(master,textvariable=input_dir_2)
 lbl2.grid(row=1, column=1)
 lbl3 = Label(master,textvariable=output_dir)
 lbl3.grid(row=2, column=1)
-# lbl3 = Label(master,textvariable=output_dir)
-# lbl3.grid(row=3, column=1)
  
 # Buttons for selecting input/output directories
 b1 = Button(master, text="Browse", command=browse_input_dir_1)
@@ -311,8 +301,6 @@ b2 = Button(master, text="Browse", command=browse_input_dir_2)
 b2.grid(row=1, column=2, padx=5, pady=5)
 b3 = Button(master, text="Browse", command=browse_output_dir)
 b3.grid(row=2, column=2, padx=5, pady=5)
-# b4 = Button(master, text="Browse", command=browse_output_dir)
-# b4.grid(row=3, column=2, padx=5, pady=5)
 
 # Button to run tool
 b4 = Button(master, text="Compare PDFs", command=compare_pdfs)
